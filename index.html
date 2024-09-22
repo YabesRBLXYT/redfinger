@@ -34,6 +34,12 @@
             border: 1px solid #ccc;
             white-space: pre-wrap;
         }
+        .copy-btn {
+            background-color: #008CBA;
+        }
+        .copy-btn:hover {
+            background-color: #007bb5;
+        }
     </style>
 </head>
 <body>
@@ -46,6 +52,7 @@
 
     <h3>Generated Script:</h3>
     <pre id="generatedScript"></pre>
+    <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
 </div>
 
 <script>
@@ -84,8 +91,16 @@ loginRedfinger();
 
     document.getElementById("generatedScript").textContent = scriptTemplate;
 }
+
+function copyToClipboard() {
+    var text = document.getElementById("generatedScript").textContent;
+    navigator.clipboard.writeText(text).then(function() {
+        alert('Script berhasil disalin ke clipboard!');
+    }, function() {
+        alert('Gagal menyalin script!');
+    });
+}
 </script>
 
 </body>
 </html>
-      
