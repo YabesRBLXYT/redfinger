@@ -3,104 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LocalStorage Script Generator</title>
+    <title>Generate LocalStorage Script</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 20px;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        textarea {
+        textarea, input {
             width: 100%;
-            height: 150px;
-            margin-bottom: 20px;
+            padding: 10px;
+            margin-bottom: 10px;
         }
         button {
+            padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
-            padding: 10px 20px;
             border: none;
             cursor: pointer;
         }
         button:hover {
             background-color: #45a049;
         }
-        pre {
-            background-color: #f4f4f4;
-            padding: 10px;
-            border: 1px solid #ccc;
+        #output {
+            margin-top: 20px;
             white-space: pre-wrap;
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ddd;
         }
-        .copy-btn {
+        #copyButton {
             background-color: #008CBA;
-        }
-        .copy-btn:hover {
-            background-color: #007bb5;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Generate LocalStorage Script</h2>
-    <label for="localStorageInput">Masukkan JSON localStorage:</label>
-    <textarea id="localStorageInput" placeholder='Masukkan JSON localStorage di sini...'></textarea>
+    <h1>Generate LocalStorage Script</h1>
+    
+    <label for="localStorageInput">Masukkan LocalStorage JSON:</label>
+    <textarea id="localStorageInput" rows="10" placeholder='Masukkan JSON LocalStorage di sini...'></textarea>
+
     <button onclick="generateScript()">Generate Script</button>
+    <button id="copyButton" onclick="copyToClipboard()" style="display: none;">Copy to Clipboard</button>
 
-    <h3>Generated Script:</h3>
-    <pre id="generatedScript"></pre>
-    <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
-</div>
+    <div id="output"></div>
 
-<script>
-function generateScript() {
-    var localStorageInput = document.getElementById("localStorageInput").value;
-    
-    if (!localStorageInput) {
-        alert('Mohon masukkan data JSON localStorage!');
-        return;
-    }
+    <script>
+        function escapeJsonString(jsonString) {
+            // Escape \ and ` in JSON string
+            return jsonString
+                .replace(/\\/g, '\\\\') // Replace single backslash with double backslash
+                .replace(/`/g, '\\`');   // Escape backticks if any (for template literal safety)
+        }
 
-    var scriptTemplate = `
-function loginRedfinger() {
-    localStorage.clear();
-    
-    var currentLocalStorage = \`${localStorageInput.replace(/`/g, '\\`')}\`;
-    var parse = null;
+        function generateScript() {
+            var currentLocalStorage = document.getElementById("localStorageInput").value.trim();
+            
+            if (!currentLocalStorage) {
+                alert("Masukkan LocalStorage JSON terlebih dahulu.");
+                return;
+            }
 
-    if (currentLocalStorage.includes('userFloatInfo')) {
-        let newLocalStorage = currentLocalStorage.split(',"userFloatInfo"')[0];
-        newLocalStorage += ',"session_id"' + currentLocalStorage.split(',"session_id"')[1];
-        parse = JSON.parse(newLocalStorage);
-    } else {
-        parse = JSON.parse(currentLocalStorage);
-    }
+            try {
+                // Parse JSON to check if it's valid
+                JSON.parse(currentLocalStorage);
 
-    for (var name in parse) {
-        localStorage.setItem(name, parse[name]);
-    }
+                var escapedLocalStorage = escapeJsonString(currentLocalStorage);
 
-    window.location.reload();
+                var scriptTemplate = 
+`function loginRedfinger() {
+localStorage.clear();
+var currentLocalStorage = \`${escapedLocalStorage}\`;
+
+var parse = null;
+
+if (currentLocalStorage.includes('userFloatInfo')) {
+    let newLocalStorage = currentLocalStorage.split(',"userFloatInfo"')[0];
+    newLocalStorage += ',"session_id"' + currentLocalStorage.split(',"session_id"')[1];
+    parse = JSON.parse(newLocalStorage);
+} else {
+    parse = JSON.parse(currentLocalStorage);
 }
 
-loginRedfinger();
-`;
-
-    document.getElementById("generatedScript").textContent = scriptTemplate;
+for (var name in parse) {
+    localStorage.setItem(name, parse[name]);
 }
 
-function copyToClipboard() {
-    var text = document.getElementById("generatedScript").textContent;
-    navigator.clipboard.writeText(text).then(function() {
-        alert('Script berhasil disalin ke clipboard!');
-    }, function() {
-        alert('Gagal menyalin script!');
-    });
+window.location.reload();
 }
-</script>
+
+loginRedfinger();`;
+
+                // Show the generated script
+                document.getElementById("output").textContent = scriptTemplate;
+
+                // Show copy button
+                document.getElementById("copyButton").style.display = 'block';
+
+            } catch (e) {
+                alert("JSON tidak valid, periksa kembali format JSON yang kamu masukkan.");
+            }
+        }
+
+        function copyToClipboard() {
+            var textToCopy = document.getElementById("output").textContent;
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                alert("Script berhasil dicopy ke clipboard!");
+            }, function() {
+                alert("Gagal menyalin script ke clipboard.");
+            });
+        }
+    </script>
 
 </body>
 </html>
